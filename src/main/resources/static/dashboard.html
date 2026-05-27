@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Dashboard - TASKFLOW</title>
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+<div class="app">
+
+  <aside class="sidebar">
+
+    <div class="sidebar-header">
+
+      <div class="badge">T</div>
+
+      <div>
+        <h1>TASKFLOW</h1>
+        <p>Gestão Corporativa</p>
+      </div>
+
+    </div>
+
+    <nav>
+
+      <a href="dashboard.html" class="active">
+        📊 Painel
+      </a>
+
+      <a href="employees.html">
+        👥 Funcionários
+      </a>
+
+      <a href="#">
+        📦 Mercadorias
+      </a>
+
+    </nav>
+
+    <button class="logout" onclick="window.location.href='login.html'">
+      Sair
+    </button>
+
+  </aside>
+
+  <main class="main">
+
+    <div class="topbar">
+      <h2>Painel Administrativo</h2>
+    </div>
+
+    <div class="content">
+
+      <div class="stats-grid">
+
+        <div class="stat-card">
+          <div class="label">Funcionários</div>
+          <div class="value">24</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="label">Mercadorias</div>
+          <div class="value">187</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="label">Estoque</div>
+          <div class="value">R$ 84.520</div>
+        </div>
+
+      </div>
+
+      <div class="panel">
+
+        <div class="panel-header">
+          <h3>Atividades Recentes</h3>
+        </div>
+
+        <table>
+
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Descrição</th>
+            </tr>
+          </thead>
+
+          <tbody>
+
+            <tr>
+              <td>26/05/2026</td>
+              <td>Novo funcionário cadastrado</td>
+            </tr>
+
+            <tr>
+              <td>26/05/2026</td>
+              <td>Mercadoria adicionada</td>
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  </main>
+
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>

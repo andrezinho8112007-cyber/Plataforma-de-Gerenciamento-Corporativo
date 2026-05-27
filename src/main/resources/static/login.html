@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - TaskFlow</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="badge">T</div>
+      <div>
+        <h1>TaskFlow</h1>
+        <p>Gestão Corporativa</p>
+      </div>
+    </div>
+    <h2>Entrar</h2>
+    <p class="subtitle">Acesse sua conta corporativa</p>
+
+    <form onsubmit="event.preventDefault(); window.location.href='dashboard.html';">
+      <div class="form-group">
+        <label for="email">E-mail</label>
+        <input type="email" id="email" placeholder="seu@empresa.com" required>
+      </div>
+      <div class="form-group">
+        <label for="senha">Senha</label>
+        <input type="password" id="senha" placeholder="••••••••" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+    </form>
+
+    <p class="auth-footer">
+      Ainda não tem conta? <a href="cadastro.html">Cadastre-se</a>
+    </p>
+  </div>
+</div>
+</body>
+</html>
