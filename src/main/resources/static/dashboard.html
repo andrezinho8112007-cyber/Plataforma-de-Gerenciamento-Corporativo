@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Dashboard - TASKFLOW</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="stylesheet" href="styles.css">
+<title>Painel - TASKFLOW</title>
+
+<link rel="stylesheet" href="styles.css">
+
 </head>
-
 <body>
 
 <div class="app">
@@ -28,93 +29,363 @@
 
     <nav>
 
-      <a href="dashboard.html" class="active">
-        📊 Painel
+      <a href="/dashboard.html" class="active">
+        <span class="icon">📊</span>
+        <span>Painel</span>
       </a>
 
-      <a href="employees.html">
-        👥 Funcionários
+      <a href="/employees.html">
+        <span class="icon">👥</span>
+        <span>Funcionários</span>
       </a>
 
-      <a href="#">
-        📦 Mercadorias
+      <a href="/merchandise.html">
+        <span class="icon">📦</span>
+        <span>Mercadorias</span>
       </a>
 
     </nav>
 
-    <button class="logout" onclick="window.location.href='login.html'">
-      Sair
+    <button class="logout" onclick="logout()">
+      <span>Sair</span>
     </button>
 
   </aside>
 
-  <main class="main">
+  <div class="main">
 
-    <div class="topbar">
-      <h2>Painel Administrativo</h2>
-    </div>
+    <header class="topbar">
+
+      <h2>Painel</h2>
+
+    </header>
 
     <div class="content">
+
+      <!-- CARDS -->
 
       <div class="stats-grid">
 
         <div class="stat-card">
-          <div class="label">Funcionários</div>
-          <div class="value">24</div>
+
+          <div class="label">
+            Funcionários
+          </div>
+
+          <div
+            class="value"
+            id="total-funcionarios"
+          >
+            0
+          </div>
+
+          <div class="hint">
+            Ativos no sistema
+          </div>
+
         </div>
 
         <div class="stat-card">
-          <div class="label">Mercadorias</div>
-          <div class="value">187</div>
+
+          <div class="label">
+            Mercadorias
+          </div>
+
+          <div
+            class="value"
+            id="total-mercadorias"
+          >
+            0
+          </div>
+
+          <div class="hint">
+            Itens cadastrados
+          </div>
+
         </div>
 
         <div class="stat-card">
-          <div class="label">Estoque</div>
-          <div class="value">R$ 84.520</div>
+
+          <div class="label">
+            Valor em Estoque
+          </div>
+
+          <div
+            class="value"
+            id="valor-estoque"
+          >
+            R$ 0,00
+          </div>
+
+          <div class="hint">
+            Valor total das mercadorias
+          </div>
+
+        </div>
+
+        <div class="stat-card">
+
+          <div class="label">
+            Empresa
+          </div>
+
+          <div
+            class="value"
+            id="empresa-logada"
+            style="font-size:1.1rem"
+          >
+            ---
+          </div>
+
+          <div class="hint">
+            Usuário autenticado
+          </div>
+
         </div>
 
       </div>
 
+      <!-- GRÁFICO -->
+
       <div class="panel">
 
         <div class="panel-header">
-          <h3>Atividades Recentes</h3>
+
+          <h3>Estatísticas</h3>
+
         </div>
 
-        <table>
+        <div class="panel-body">
 
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Descrição</th>
-            </tr>
-          </thead>
+          <canvas id="grafico"></canvas>
 
-          <tbody>
+        </div>
 
-            <tr>
-              <td>26/05/2026</td>
-              <td>Novo funcionário cadastrado</td>
-            </tr>
+      </div>
 
-            <tr>
-              <td>26/05/2026</td>
-              <td>Mercadoria adicionada</td>
-            </tr>
+      <!-- HISTÓRICO -->
 
-          </tbody>
+      <div class="panel">
 
-        </table>
+        <div class="panel-header">
+
+          <h3>Histórico de Ações</h3>
+
+        </div>
+
+        <div class="panel-body">
+
+          <ul id="historico-acoes">
+
+          </ul>
+
+        </div>
 
       </div>
 
     </div>
 
-  </main>
+  </div>
 
 </div>
 
-<script src="app.js"></script>
+<!-- CHART JS -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+// ===============================
+// LOGIN
+// ===============================
+
+const usuarioLogado =
+    JSON.parse(localStorage.getItem("usuarioLogado"));
+
+if (!usuarioLogado) {
+
+    window.location.href = "/login.html";
+
+}
+
+// ===============================
+// CARREGAR DASHBOARD
+// ===============================
+
+async function carregarDashboard() {
+
+    if (!usuarioLogado) return;
+
+    try {
+
+        const respostaFuncionarios =
+            await fetch("http://localhost:8080/api/funcionarios");
+
+        const funcionarios =
+            await respostaFuncionarios.json();
+
+        const respostaMercadorias =
+            await fetch("http://localhost:8080/api/mercadorias");
+
+        const mercadorias =
+            await respostaMercadorias.json();
+
+        // ===============================
+        // TOTAL FUNCIONÁRIOS
+        // ===============================
+
+        document.getElementById("total-funcionarios")
+            .innerText = funcionarios.length;
+
+        // ===============================
+        // TOTAL MERCADORIAS
+        // ===============================
+
+        document.getElementById("total-mercadorias")
+            .innerText = mercadorias.length;
+
+        // ===============================
+        // EMPRESA LOGADA
+        // ===============================
+
+        document.getElementById("empresa-logada")
+            .innerText = usuarioLogado.empresa;
+
+        // ===============================
+        // VALOR ESTOQUE
+        // ===============================
+
+        let valorTotal = 0;
+
+        mercadorias.forEach(item => {
+
+            valorTotal +=
+                Number(item.quantidade) *
+                Number(item.preco);
+
+        });
+
+        document.getElementById("valor-estoque")
+            .innerText =
+                "R$ " + valorTotal.toFixed(2);
+
+        // ===============================
+        // HISTÓRICO
+        // ===============================
+
+        const historico =
+            JSON.parse(
+                localStorage.getItem(
+                    "historico_" +
+                    usuarioLogado.empresa
+                )
+            ) || [];
+
+        const lista =
+            document.getElementById(
+                "historico-acoes"
+            );
+
+        lista.innerHTML = "";
+
+        historico
+            .slice()
+            .reverse()
+            .forEach(acao => {
+
+                lista.innerHTML += `
+                    <li style="margin-bottom:10px;">
+                        ${acao}
+                    </li>
+                `;
+
+            });
+
+        // ===============================
+        // GRÁFICO
+        // ===============================
+
+        const ctx =
+            document.getElementById("grafico");
+
+        new Chart(ctx, {
+
+            type: "bar",
+
+            data: {
+
+                labels: [
+                    "Funcionários",
+                    "Mercadorias"
+                ],
+
+                datasets: [{
+
+                    label: "Quantidade",
+
+                    data: [
+                        funcionarios.length,
+                        mercadorias.length
+                    ]
+
+                }]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                plugins: {
+
+                    legend: {
+
+                        display: true
+
+                    }
+
+                }
+
+            }
+
+        });
+
+    }
+
+    catch (erro) {
+
+        console.error(erro);
+
+        alert(
+            "Erro ao carregar dashboard."
+        );
+
+    }
+
+}
+
+// ===============================
+// LOGOUT
+// ===============================
+
+function logout() {
+
+    localStorage.removeItem(
+        "usuarioLogado"
+    );
+
+    window.location.href =
+        "/login.html";
+
+}
+
+// ===============================
+// INICIA
+// ===============================
+
+carregarDashboard();
+
+</script>
 
 </body>
 </html>

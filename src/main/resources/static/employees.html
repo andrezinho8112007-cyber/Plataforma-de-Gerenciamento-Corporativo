@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -28,24 +29,24 @@
 
     <nav>
 
-      <a href="dashboard.html">
+      <a href="/dashboard.html">
         <span class="icon">📊</span>
         <span>Painel</span>
       </a>
 
-      <a href="employees.html" class="active">
+      <a href="/employees.html" class="active">
         <span class="icon">👥</span>
         <span>Funcionários</span>
       </a>
 
-      <a href="merchandise.html">
+      <a href="/merchandise.html">
         <span class="icon">📦</span>
         <span>Mercadorias</span>
       </a>
 
     </nav>
 
-    <button class="logout" onclick="window.location.href='login.html'">
+    <button class="logout" onclick="logout()">
       <span>Sair</span>
     </button>
 
@@ -54,7 +55,9 @@
   <div class="main">
 
     <header class="topbar">
+
       <h2>Funcionários</h2>
+
     </header>
 
     <div class="content">
@@ -65,9 +68,28 @@
 
           <h3>Lista de Funcionários</h3>
 
-          <button class="btn btn-primary" onclick="abrirModal()">
-            + Adicionar
-          </button>
+          <div style="display:flex; gap:10px;">
+
+            <input
+              type="text"
+              id="pesquisa"
+              placeholder="Pesquisar funcionário..."
+              style="
+                padding:10px;
+                border:1px solid #ccc;
+                border-radius:6px;
+              "
+              onkeyup="pesquisarFuncionario()"
+            >
+
+            <button
+              class="btn btn-primary"
+              onclick="abrirModal()"
+            >
+              + Adicionar"
+            </button>
+
+          </div>
 
         </div>
 
@@ -79,6 +101,7 @@
               <th>Nome</th>
               <th>Cargo</th>
               <th>Setor</th>
+              <th>Ações</th>
             </tr>
 
           </thead>
@@ -103,39 +126,38 @@
 
   <div class="modal">
 
-    <h3>Novo Funcionário</h3>
+    <h3 id="titulo-modal">
+      Novo Funcionário
+    </h3>
 
     <div class="form-group">
-
       <label>Nome</label>
-
       <input type="text" id="nome">
-
     </div>
 
     <div class="form-group">
-
       <label>Cargo</label>
-
       <input type="text" id="cargo">
-
     </div>
 
     <div class="form-group">
-
       <label>Setor</label>
-
       <input type="text" id="setor">
-
     </div>
 
     <div class="modal-actions">
 
-      <button class="btn btn-outline" onclick="fecharModal()">
+      <button
+        class="btn btn-outline"
+        onclick="fecharModal()"
+      >
         Cancelar
       </button>
 
-      <button class="btn btn-primary" onclick="adicionarFuncionario()">
+      <button
+        class="btn btn-primary"
+        onclick="salvarFuncionario()"
+      >
         Salvar
       </button>
 
@@ -147,47 +169,381 @@
 
 <script>
 
-const modal = document.getElementById("modal");
+// ===============================
+// LOGIN
+// ===============================
+
+const usuarioLogado =
+    JSON.parse(localStorage.getItem("usuarioLogado"));
+
+if (!usuarioLogado) {
+
+    window.location.href = "/login.html";
+
+}
+
+// ===============================
+// API
+// ===============================
+
+const API_URL =
+    "http://localhost:8080/api/funcionarios";
+
+let funcionarios = [];
+
+// ===============================
+// HISTÓRICO DA EMPRESA
+// ===============================
+
+const chaveHistorico =
+    "historico_" +
+    usuarioLogado.empresa;
+
+// ===============================
+// VARIÁVEIS
+// ===============================
+
+const modal =
+    document.getElementById("modal");
+
+// ===============================
+// MODAL
+// ===============================
 
 function abrirModal() {
+
+    limparCampos();
+
+    document.getElementById(
+        "titulo-modal"
+    ).innerText =
+        "Novo Funcionário";
+
     modal.classList.add("open");
+
 }
 
 function fecharModal() {
+
     modal.classList.remove("open");
+
 }
 
-function adicionarFuncionario() {
+// ===============================
+// CARREGAR FUNCIONÁRIOS
+// ===============================
 
-    const nome = document.getElementById("nome").value.trim();
-    const cargo = document.getElementById("cargo").value.trim();
-    const setor = document.getElementById("setor").value.trim();
+async function carregarFuncionarios() {
+
+    try {
+
+        const resposta =
+            await fetch(API_URL);
+
+        funcionarios =
+            await resposta.json();
+
+        renderizarTabela(
+            funcionarios
+        );
+
+    }
+
+    catch (erro) {
+
+        console.error(erro);
+
+        alert(
+            "Erro ao carregar funcionários."
+        );
+
+    }
+
+}
+
+// ===============================
+// RENDERIZAR TABELA
+// ===============================
+
+function renderizarTabela(lista) {
+
+    const tabela =
+        document.getElementById(
+            "tabela-funcionarios"
+        );
+
+    tabela.innerHTML = "";
+
+    lista.forEach(funcionario => {
+
+        tabela.innerHTML += `
+            <tr>
+
+                <td>${funcionario.nome}</td>
+
+                <td>${funcionario.cargo}</td>
+
+                <td>${funcionario.setor}</td>
+
+                <td>
+
+                    <button
+                        class="btn btn-outline"
+                        onclick="excluirFuncionario(${funcionario.id})"
+                    >
+                        Excluir
+                    </button>
+
+                </td>
+
+            </tr>
+        `;
+
+    });
+
+}
+
+// ===============================
+// PESQUISA
+// ===============================
+
+function pesquisarFuncionario() {
+
+    const texto =
+        document.getElementById(
+            "pesquisa"
+        )
+        .value
+        .toLowerCase();
+
+    const filtrados =
+        funcionarios.filter(f =>
+
+            f.nome
+             .toLowerCase()
+             .includes(texto)
+
+        );
+
+    renderizarTabela(
+        filtrados
+    );
+
+}
+
+// ===============================
+// SALVAR FUNCIONÁRIO
+// ===============================
+
+async function salvarFuncionario() {
+
+    const nome =
+        document.getElementById(
+            "nome"
+        )
+        .value
+        .trim();
+
+    const cargo =
+        document.getElementById(
+            "cargo"
+        )
+        .value
+        .trim();
+
+    const setor =
+        document.getElementById(
+            "setor"
+        )
+        .value
+        .trim();
 
     if (!nome || !cargo || !setor) {
 
-        alert("Preencha todos os campos!");
+        alert(
+            "Preencha todos os campos!"
+        );
+
         return;
 
     }
 
-    const tabela = document.getElementById("tabela-funcionarios");
+    try {
 
-    const novaLinha = `
-        <tr>
-            <td>${nome}</td>
-            <td>${cargo}</td>
-            <td>${setor}</td>
-        </tr>
-    `;
+        const resposta =
+            await fetch(API_URL, {
 
-    tabela.innerHTML += novaLinha;
+                method: "POST",
 
-    document.getElementById("nome").value = "";
-    document.getElementById("cargo").value = "";
-    document.getElementById("setor").value = "";
+                headers: {
 
-    fecharModal();
+                    "Content-Type":
+                        "application/json"
+
+                },
+
+                body: JSON.stringify({
+
+                    nome,
+                    cargo,
+                    setor
+
+                })
+
+            });
+
+        if (!resposta.ok) {
+
+            throw new Error(
+                "Erro ao cadastrar"
+            );
+
+        }
+
+        // HISTÓRICO
+
+        const historico =
+            JSON.parse(
+                localStorage.getItem(
+                    chaveHistorico
+                )
+            ) || [];
+
+        historico.push(
+            `👤 Funcionário ${nome} cadastrado | Cargo: ${cargo} | Setor: ${setor}`
+        );
+
+        localStorage.setItem(
+            chaveHistorico,
+            JSON.stringify(historico)
+        );
+
+        fecharModal();
+
+        limparCampos();
+
+        carregarFuncionarios();
+
+    }
+
+    catch (erro) {
+
+        console.error(erro);
+
+        alert(
+            "Erro ao cadastrar funcionário."
+        );
+
+    }
+
 }
+
+// ===============================
+// EXCLUIR
+// ===============================
+
+async function excluirFuncionario(id) {
+
+    const confirmar =
+        confirm(
+            "Deseja excluir este funcionário?"
+        );
+
+    if (!confirmar) return;
+
+    try {
+
+        const funcionario =
+            funcionarios.find(
+                f => f.id === id
+            );
+
+        await fetch(
+
+            `${API_URL}/${id}`,
+
+            {
+
+                method: "DELETE"
+
+            }
+
+        );
+
+        // HISTÓRICO
+
+        const historico =
+            JSON.parse(
+                localStorage.getItem(
+                    chaveHistorico
+                )
+            ) || [];
+
+        historico.push(
+            `❌ Funcionário ${funcionario.nome} removido | Cargo: ${funcionario.cargo} | Setor: ${funcionario.setor}`
+        );
+
+        localStorage.setItem(
+            chaveHistorico,
+            JSON.stringify(historico)
+        );
+
+        carregarFuncionarios();
+
+    }
+
+    catch (erro) {
+
+        console.error(erro);
+
+        alert(
+            "Erro ao excluir funcionário."
+        );
+
+    }
+
+}
+
+// ===============================
+// LIMPAR CAMPOS
+// ===============================
+
+function limparCampos() {
+
+    document.getElementById(
+        "nome"
+    ).value = "";
+
+    document.getElementById(
+        "cargo"
+    ).value = "";
+
+    document.getElementById(
+        "setor"
+    ).value = "";
+
+}
+
+// ===============================
+// LOGOUT
+// ===============================
+
+function logout() {
+
+    localStorage.removeItem(
+        "usuarioLogado"
+    );
+
+    window.location.href =
+        "/login.html";
+
+}
+
+// ===============================
+// INICIAR
+// ===============================
+
+carregarFuncionarios();
 
 </script>
 

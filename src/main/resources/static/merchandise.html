@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Mercadorias - TASKFLOW</title>
+
+<link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+
+<div class="app">
+
+  <aside class="sidebar">
+
+    <div class="sidebar-header">
+
+      <div class="badge">T</div>
+
+      <div>
+        <h1>TASKFLOW</h1>
+        <p>Gestão Corporativa</p>
+      </div>
+
+    </div>
+
+    <nav>
+
+      <a href="/dashboard.html">
+        <span class="icon">📊</span>
+        <span>Painel</span>
+      </a>
+
+      <a href="/employees.html">
+        <span class="icon">👥</span>
+        <span>Funcionários</span>
+      </a>
+
+      <a href="/merchandise.html" class="active">
+        <span class="icon">📦</span>
+        <span>Mercadorias</span>
+      </a>
+
+    </nav>
+
+    <button class="logout" onclick="logout()">
+      <span>Sair</span>
+    </button>
+
+  </aside>
+
+  <div class="main">
+
+    <header class="topbar">
+
+      <h2>Mercadorias</h2>
+
+    </header>
+
+    <div class="content">
+
+      <div class="panel">
+
+        <div class="panel-header">
+
+          <h3>Lista de Mercadorias</h3>
+
+          <div style="display:flex; gap:10px;">
+
+            <input
+              type="text"
+              id="pesquisa"
+              placeholder="Pesquisar mercadoria..."
+              style="
+                padding:10px;
+                border:1px solid #ccc;
+                border-radius:6px;
+              "
+              onkeyup="pesquisarMercadoria()"
+            >
+
+            <button
+              class="btn btn-primary"
+              onclick="abrirModal()"
+            >
+              + Adicionar
+            </button>
+
+          </div>
+
+        </div>
+
+        <table>
+
+          <thead>
+
+            <tr>
+              <th>Produto</th>
+              <th>Quantidade</th>
+              <th>Preço</th>
+              <th>Ações</th>
+            </tr>
+
+          </thead>
+
+          <tbody id="tabela-mercadorias">
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- MODAL -->
+
+<div class="modal-overlay" id="modal">
+
+  <div class="modal">
+
+    <h3 id="titulo-modal">
+      Nova Mercadoria
+    </h3>
+
+    <div class="form-group">
+      <label>Produto</label>
+      <input type="text" id="produto">
+    </div>
+
+    <div class="form-group">
+      <label>Quantidade</label>
+      <input type="number" id="quantidade">
+    </div>
+
+    <div class="form-group">
+      <label>Preço</label>
+      <input type="number" id="preco">
+    </div>
+
+    <div class="modal-actions">
+
+      <button
+        class="btn btn-outline"
+        onclick="fecharModal()"
+      >
+        Cancelar
+      </button>
+
+      <button
+        class="btn btn-primary"
+        onclick="salvarMercadoria()"
+      >
+        Salvar
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+
+// ===============================
+// LOGIN
+// ===============================
+
+const usuarioLogado =
+    JSON.parse(localStorage.getItem("usuarioLogado"));
+
+if (!usuarioLogado) {
+
+    window.location.href = "/login.html";
+
+}
+
+// ===============================
+// API
+// ===============================
+
+const API_URL =
+    "http://localhost:8080/api/mercadorias";
+
+// ===============================
+// VARIÁVEIS
+// ===============================
+
+const modal =
+    document.getElementById("modal");
+
+// ===============================
+// MODAL
+// ===============================
+
+function abrirModal() {
+
+    limparCampos();
+
+    document.getElementById("titulo-modal")
+        .innerText = "Nova Mercadoria";
+
+    modal.classList.add("open");
+
+}
+
+function fecharModal() {
+
+    modal.classList.remove("open");
+
+}
+
+// ===============================
+// CARREGAR MERCADORIAS
+// ===============================
+
+async function carregarMercadorias() {
+
+    const tabela =
+        document.getElementById(
+            "tabela-mercadorias"
+        );
+
+    tabela.innerHTML = "";
+
+    try {
+
+        const resposta =
+            await fetch(API_URL);
+
+        const mercadorias =
+            await resposta.json();
+
+        mercadorias.forEach(item => {
+
+            tabela.innerHTML += `
+                <tr>
+
+                    <td>${item.produto}</td>
+
+                    <td>${item.quantidade}</td>
+
+                    <td>R$ ${Number(item.preco).toFixed(2)}</td>
+
+                    <td>
+
+                        <button
+                            class="btn btn-outline"
+                            onclick="excluirMercadoria(${item.id})"
+                        >
+                            Excluir
+                        </button>
+
+                    </td>
+
+                </tr>
+            `;
+
+        });
+
+    }
+
+    catch (erro) {
+
+        console.error(erro);
+
+        alert(
+            "Erro ao carregar mercadorias"
+        );
+
+    }
+
+}
+
+// ===============================
+// PESQUISA
+// ===============================
+
+async function pesquisarMercadoria() {
+
+    const texto =
+        document.getElementById("pesquisa")
+        .value
+        .toLowerCase();
+
+    const resposta =
+        await fetch(API_URL);
+
+    const mercadorias =
+        await resposta.json();
+
+    const filtradas =
+        mercadorias.filter(item =>
+
+            item.produto
+                .toLowerCase()
+                .includes(texto)
+
+        );
+
+    const tabela =
+        document.getElementById(
+            "tabela-mercadorias"
+        );
+
+    tabela.innerHTML = "";
+
+    filtradas.forEach(item => {
+
+        tabela.innerHTML += `
+            <tr>
+
+                <td>${item.produto}</td>
+
+                <td>${item.quantidade}</td>
+
+                <td>R$ ${Number(item.preco).toFixed(2)}</td>
+
+                <td>
+
+                    <button
+                        class="btn btn-outline"
+                        onclick="excluirMercadoria(${item.id})"
+                    >
+                        Excluir
+                    </button>
+
+                </td>
+
+            </tr>
+        `;
+
+    });
+
+}
+
+// ===============================
+// SALVAR MERCADORIA
+// ===============================
+
+async function salvarMercadoria() {
+
+    const produto =
+        document.getElementById("produto")
+        .value.trim();
+
+    const quantidade =
+        document.getElementById("quantidade")
+        .value.trim();
+
+    const preco =
+        document.getElementById("preco")
+        .value.trim();
+
+    if (!produto || !quantidade || !preco) {
+
+        alert(
+            "Preencha todos os campos!"
+        );
+
+        return;
+
+    }
+
+    try {
+
+        await fetch(API_URL, {
+
+            method: "POST",
+
+            headers: {
+
+                "Content-Type":
+                    "application/json"
+
+            },
+
+            body: JSON.stringify({
+
+                produto,
+                quantidade:
+                    Number(quantidade),
+
+                preco:
+                    Number(preco)
+
+            })
+
+        });
+
+        // HISTÓRICO
+
+        const chaveHistorico =
+            "historico_" +
+            usuarioLogado.empresa;
+
+        const historico =
+            JSON.parse(
+                localStorage.getItem(
+                    chaveHistorico
+                )
+            ) || [];
+
+        historico.push(
+            `📦 Mercadoria ${produto} adicionada | Qtd: ${quantidade} | Valor: R$ ${preco}`
+        );
+
+        localStorage.setItem(
+            chaveHistorico,
+            JSON.stringify(historico)
+        );
+
+        fecharModal();
+
+        limparCampos();
+
+        carregarMercadorias();
+
+    }
+
+    catch (erro) {
+
+        console.error(erro);
+
+        alert(
+            "Erro ao cadastrar mercadoria"
+        );
+
+    }
+
+}
+
+// ===============================
+// EXCLUIR
+// ===============================
+
+async function excluirMercadoria(id) {
+
+    if (
+        !confirm(
+            "Deseja realmente excluir?"
+        )
+    ) return;
+
+    try {
+
+        const resposta =
+            await fetch(API_URL);
+
+        const mercadorias =
+            await resposta.json();
+
+        const mercadoria =
+            mercadorias.find(
+                m => m.id === id
+            );
+
+        await fetch(
+
+            `${API_URL}/${id}`,
+
+            {
+
+                method: "DELETE"
+
+            }
+
+        );
+
+        // HISTÓRICO
+
+        const chaveHistorico =
+            "historico_" +
+            usuarioLogado.empresa;
+
+        const historico =
+            JSON.parse(
+                localStorage.getItem(
+                    chaveHistorico
+                )
+            ) || [];
+
+        historico.push(
+            `❌ Mercadoria ${mercadoria.produto} removida | Qtd: ${mercadoria.quantidade} | Valor: R$ ${mercadoria.preco}`
+        );
+
+        localStorage.setItem(
+            chaveHistorico,
+            JSON.stringify(historico)
+        );
+
+        carregarMercadorias();
+
+    }
+
+    catch (erro) {
+
+        console.error(erro);
+
+        alert(
+            "Erro ao excluir mercadoria"
+        );
+
+    }
+
+}
+
+// ===============================
+// LIMPAR CAMPOS
+// ===============================
+
+function limparCampos() {
+
+    document.getElementById("produto")
+        .value = "";
+
+    document.getElementById("quantidade")
+        .value = "";
+
+    document.getElementById("preco")
+        .value = "";
+
+}
+
+// ===============================
+// LOGOUT
+// ===============================
+
+function logout() {
+
+    localStorage.removeItem(
+        "usuarioLogado"
+    );
+
+    window.location.href =
+        "/login.html";
+
+}
+
+// ===============================
+// INICIAR
+// ===============================
+
+carregarMercadorias();
+
+</script>
+
+</body>
+</html>
